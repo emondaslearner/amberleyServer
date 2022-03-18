@@ -24,6 +24,11 @@ const connectClient = async () => {
      const result = await invoice.insertOne(req.body);
      res.send(result)
    })
+   app.get('/', (req, res) => {
+     res.send(`
+     <h3> Your Server is working fine!!!</h3>
+     `)
+   })
 
   } catch(err) {
     console.log("Something Went Wrong!!", err.message);
@@ -31,6 +36,6 @@ const connectClient = async () => {
 };
 connectClient();
 
-app.listen(4000, () => {
+app.listen(process.env.PORT, () => {
   console.log("localhost running");
 });
