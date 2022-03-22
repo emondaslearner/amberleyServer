@@ -3,15 +3,20 @@ const app = express();
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+const fileUpload = require("express-fileupload");
 const mongoose = require("mongoose");
 const connectDB = require("./config/connectDB");
-connectDB();
-const port = process.env.PORT || 5000;
 const crypto = require("crypto");
 const sendOTP = require("./otp");
+const fs = require('fs-extra')
+
+connectDB();
+const port = process.env.PORT || 5000;
+
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
+app.use(fileUpload());
 function randomOTP() {
   const keyword = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let randomKey = "";
@@ -58,27 +63,85 @@ const otpModel = mongoose.model("otpModels", {
   },
 });
 
-const invoiceModel = mongoose.model("Invoice_Information",{
-  name:String,
-  email:String,
-  invoiceNumbers:String,
-  purchaseNos:String,
-  dueDate:Date,
-  issuedDates:Date,
-  chrisDare:String,
-  grandTotal:Number,
-  description:String,
-  item:Array
-})
+const invoiceModel = mongoose.model("Invoice_Information", {
+  name: String,
+  email: String,
+  invoiceNumbers: String,
+  purchaseNos: String,
+  dueDate: Date,
+  issuedDates: Date,
+  chrisDare: String,
+  grandTotal: Number,
+  description: String,
+  item: Array,
+  img: { img: Buffer, contentType: String }
+});
 
 app.get("/", (req, res) => {
   res.send("You are doing well");
 });
-app.post('/',async(req,res) => {
-  const data = await invoiceModel(req.body)
-  const dataSave = await data.save()
-  res.send(dataSave)
-})
+
+app.post("/", async (req, res) => {
+  //get data and parse item from req.body
+  const item = JSON.parse(req.body.item);
+  const invoiceData = {
+    invoiceNumbers: req.body.invoiceNumbers,
+    chrisDare: req.body.chrisDare,
+    name: req.body.name,
+    email: req.body.email,
+    dueDate: req.body.dueDate,
+    purchaseNos: req.body.purchaseNos,
+    issuedDates: req.body.issuedDates,
+    item,
+    grandTotal: req.body.grandTotal,
+    description: req.body.description,
+  };
+
+  if (req.files == null) {
+    //without file save data
+    const data = await invoiceModel(invoiceData);
+    const dataSave = await data.save();
+    res.send(dataSave);
+  }else{
+    //with file save data
+    const file = req.files.file;
+    const filePath = `${__dirname}/files/${file.name}`;
+    file.mv(filePath,err => {
+      if(err){
+        res.send(err)
+      }
+      const image = fs.readFileSync(filePath)
+      const encImg = image.toString('base64')
+      const img = {
+        contentType:file.mimetype,
+        img:Buffer.from(encImg,'base64')
+      }
+      const invoiceDataWithFile = {
+        invoiceNumbers: req.body.invoiceNumbers,
+        chrisDare: req.body.chrisDare,
+        name: req.body.name,
+        email: req.body.email,
+        dueDate: req.body.dueDate,
+        purchaseNos: req.body.purchaseNos,
+        issuedDates: req.body.issuedDates,
+        item,
+        grandTotal: req.body.grandTotal,
+        description: req.body.description,
+        img
+      };
+      const data = invoiceModel(invoiceDataWithFile);
+      const dataSave = data.save();
+      dataSave
+      .then(result => {
+        fs.remove(filePath,err => {
+          console.log(err)
+        })
+        res.send(dataSave)
+      })
+    })
+  }
+});
+
 app.get("/createOtp/:email", async (req, res) => {
   try {
     const key = randomOTP();
@@ -117,13 +180,11 @@ app.get("/validateOTP/:OTP/:email", async (req, res) => {
   // console.log(req.headers.cookie, 'vairfdfjd');
   const validOTP = await otpModel.findOne({ email: req.params.email });
   if (!validOTP) {
-    return res
-      .status(200)
-      .json({
-        success: false,
-        message: "Email not found, Try again",
-        validOTP,
-      });
+    return res.status(200).json({
+      success: false,
+      message: "Email not found, Try again",
+      validOTP,
+    });
   }
   const data = await verify(req.params.OTP, validOTP?.OTP);
   if (!data) {
