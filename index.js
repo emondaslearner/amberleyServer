@@ -130,6 +130,8 @@ app.post("/", async (req, res) => {
         img
       };
       const data = invoiceModel(invoiceDataWithFile);
+
+      //save data to database
       const dataSave = data.save();
       dataSave
       .then(result => {
