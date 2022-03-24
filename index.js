@@ -74,7 +74,7 @@ const invoiceModel = mongoose.model("Invoice_Information", {
   grandTotal: Number,
   description: String,
   item: Array,
-  img: { img: Buffer, contentType: String }
+  pdf: { pdf: Buffer, contentType: String }
 });
 
 app.get("/", (req, res) => {
@@ -112,9 +112,9 @@ app.post("/", async (req, res) => {
       }
       const image = fs.readFileSync(filePath)
       const encImg = image.toString('base64')
-      const img = {
+      const pdf = {
         contentType:file.mimetype,
-        img:Buffer.from(encImg,'base64')
+        pdf:Buffer.from(encImg,'base64')
       }
       const invoiceDataWithFile = {
         invoiceNumbers: req.body.invoiceNumbers,
@@ -127,7 +127,7 @@ app.post("/", async (req, res) => {
         item,
         grandTotal: req.body.grandTotal,
         description: req.body.description,
-        img
+        pdf
       };
       const data = invoiceModel(invoiceDataWithFile);
 
