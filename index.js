@@ -118,7 +118,7 @@ app.post("/", async (req, res) => {
       const encImg = image.toString('base64')
       const pdf = {
         contentType:file.mimetype,
-        data:Buffer.from(encImg,'base64')
+        pdf:Buffer.from(encImg,'base64')
       }
       const invoiceDataWithFile = {
         invoiceNumbers: req.body.invoiceNumbers,
