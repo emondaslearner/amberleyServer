@@ -63,19 +63,24 @@ const otpModel = mongoose.model("otpModels", {
   },
 });
 
+// const invoiceModel = mongoose.model("Invoice_Information", {
+//   name: String,
+//   email: String,
+//   invoiceNumbers: String,
+//   purchaseNos: String,
+//   dueDate: Date,
+//   issuedDates: Date,
+//   chrisDare: String,
+//   grandTotal: Number,
+//   description: String,
+//   item: Array,
+//   pdf: { pdf: Buffer, contentType: String },
+// });
+
 const invoiceModel = mongoose.model("Invoice_Information", {
-  name: String,
-  email: String,
-  invoiceNumbers: String,
-  purchaseNos: String,
-  dueDate: Date,
-  issuedDates: Date,
-  chrisDare: String,
-  grandTotal: Number,
-  description: String,
-  item: Array,
   pdf: { pdf: Buffer, contentType: String },
 });
+
 
 app.get("/", (req, res) => {
   res.send("You are doing well");
@@ -98,6 +103,7 @@ app.post("/", async (req, res) => {
   //   grandTotal: req.body.grandTotal,
   //   description: req.body.description,
   // };
+  
 
   // if (req.files == null) {
   //   //without file save data
@@ -106,43 +112,43 @@ app.post("/", async (req, res) => {
   //   res.send(dataSave);
   // }else{
   //   //with file save data
-  //   const file = req.files.file;
-  //   const filePath = `${__dirname}/files/${file.name}`;
-  //   file.mv(filePath,err => {
-  //     if(err){
-  //       res.send(err)
-  //     }
-  //     const image = fs.readFileSync(filePath)
-  //     const encImg = image.toString('base64')
-  //     const pdf = {
-  //       contentType:file.mimetype,
-  //       pdf:Buffer.from(encImg,'base64')
-  //     }
-  //     const invoiceDataWithFile = {
-  //       invoiceNumbers: req.body.invoiceNumbers,
-  //       chrisDare: req.body.chrisDare,
-  //       name: req.body.name,
-  //       email: req.body.email,
-  //       dueDate: req.body.dueDate,
-  //       purchaseNos: req.body.purchaseNos,
-  //       issuedDates: req.body.issuedDates,
-  //       item,
-  //       grandTotal: req.body.grandTotal,
-  //       description: req.body.description,
-  //       pdf
-  //     };
-  //     const data = invoiceModel(invoiceDataWithFile);
+    const file = req.files.file;
+    const filePath = `${__dirname}/files/${file.name}`;
+    file.mv(filePath,err => {
+      if(err){
+        res.send(err)
+      }
+      const image = fs.readFileSync(filePath)
+      const encImg = image.toString('base64')
+      const pdf = {
+        contentType:file.mimetype,
+        pdf:Buffer.from(encImg,'base64')
+      }
+      // const invoiceDataWithFile = {
+      //   invoiceNumbers: req.body.invoiceNumbers,
+      //   chrisDare: req.body.chrisDare,
+      //   name: req.body.name,
+      //   email: req.body.email,
+      //   dueDate: req.body.dueDate,
+      //   purchaseNos: req.body.purchaseNos,
+      //   issuedDates: req.body.issuedDates,
+      //   item,
+      //   grandTotal: req.body.grandTotal,
+      //   description: req.body.description,
+      //   pdf
+      // };
+      const data = invoiceModel({pdf});
 
-  //     //save data to database
-  //     const dataSave = data.save();
-  //     dataSave
-  //     .then(result => {
-  //       fs.remove(filePath,err => {
-  //         console.log(err)
-  //       })
-  //       res.send(dataSave)
-  //     })
-  //   })
+      //save data to database
+      const dataSave = data.save();
+      // dataSave
+      // .then(result => {
+      //   fs.remove(filePath,err => {
+      //     console.log(err)
+      //   })
+      //   res.send(dataSave)
+      // })
+    })
   // }
 });
 
