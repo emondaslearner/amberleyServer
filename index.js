@@ -82,6 +82,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/", async (req, res) => {
+  console.log(req.body)
   //get data and parse item from req.body
   const item = JSON.parse(req.body.item);
   const invoiceData = {
